@@ -55,7 +55,7 @@ class Recipe(models.Model):
                                   related_name='recipes',
                                   verbose_name='Теги')
     image = models.ImageField('Изображение блюда',
-                              upload_to='media/')
+                              upload_to='recipes/images/')
     name = models.CharField('Название блюда',
                             max_length=200)
     text = models.TextField('Описание блюда')
@@ -121,7 +121,7 @@ class ShoppingList(models.Model):
                              verbose_name='Пользователь, собравший список')
 
     def __str__(self):
-        return (f'У пользователя {self.user.get_full_name()} в списке покупок'
+        return (f'У пользователя {self.user.get_full_name()} в списке покупок '
                 f'рецепт - {self.recipe}')
 
     class Meta:
@@ -147,7 +147,7 @@ class Favorite(models.Model):
                                related_name='favorite_recipes')
 
     def __str__(self):
-        return (f'У пользователя {self.user.get_full_name()} в избранном'
+        return (f'У пользователя {self.user.get_full_name()} в избранном '
                 f'рецепт - {self.recipe}')
 
     class Meta:
@@ -158,37 +158,4 @@ class Favorite(models.Model):
                 fields=('user', 'recipe'),
                 name='Уникальный избранный рецепт',
             ),
-        )
-
-
-class Follow(models.Model):
-    """Подписки."""
-    user = models.ForeignKey(
-        User,
-        verbose_name='Подписчик',
-        on_delete=models.CASCADE,
-        related_name='follower'
-    )
-    following = models.ForeignKey(
-        User,
-        verbose_name='Автор',
-        on_delete=models.CASCADE,
-        related_name='following'
-    )
-
-    def __str__(self):
-        return f'Подписка на автора {self.following.get_full_name()}'
-
-    class Meta:
-        verbose_name = 'Подписка'
-        verbose_name_plural = 'Подписки'
-        constraints = (
-            models.UniqueConstraint(
-                fields=('user', 'following'),
-                name='Уникальная подписка',
-            ),
-            models.CheckConstraint(
-                check=~models.Q(user=models.F('following')),
-                name='Запрет подписки на самого себя'
-            )
         )
