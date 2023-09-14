@@ -10,15 +10,13 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         with open('../data/ingredients.json',
                   encoding='utf8') as file:
-            data = json.load(file)
-            ingredients = []
-            for i in data:
-                ingredients.append(
-                    Ingredient(name=i['name'],
-                               measurement_unit=i['measurement_unit'])
-                    )
-            print('Загрузка в базу данных...')
-            Ingredient.objects.bulk_create(ingredients)
+            self.stdout.write('Загрузка в базу данных...')
+            Ingredient.objects.bulk_create(
+                [Ingredient(
+                    name=data['name'],
+                    measurement_unit=data['measurement_unit']
+                    ) for data in json.load(file)]
+            )
         self.stdout.write(
             self.style.SUCCESS(
                 'Загрузка произошла успешно!'

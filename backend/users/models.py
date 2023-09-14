@@ -34,7 +34,7 @@ class Follow(models.Model):
     )
 
     def __str__(self):
-        return f'Подписка на автора {self.following.get_full_name()}'
+        return f'{self.user} подписан на {self.following}'
 
     class Meta:
         verbose_name = 'Подписка'

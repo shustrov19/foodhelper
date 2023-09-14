@@ -1,12 +1,16 @@
 from rest_framework import permissions
 
 
-class IsCurrentUserOrAdminOrReadOnly(permissions.BasePermission):
-    """
-    Доступ для неавторизованных пользователей только чтение.
-    Другие методы доступны только для авторизованного пользователя и
-    администратора.
-    """
+class IsAuthorAdminOrReadOnly(permissions.BasePermission):
+    """Просмотр разрешён любому пользователю.
+    Создание, удаление, редактирование Разрешено только автору
+    или администратору."""
+    def has_permission(self, request, view):
+        return (request.method in permissions.SAFE_METHODS
+                or request.user.is_authenticated)
+
     def has_object_permission(self, request, view, obj):
-        return (request.method in permissions.SAFE_METHODS or
-                (obj.user == request.user or request.user.is_superuser))
+        return (request.method in permissions.SAFE_METHODS
+                or obj.author == request.user
+                or request.user.is_staff
+                or request.user.is_superuser)
