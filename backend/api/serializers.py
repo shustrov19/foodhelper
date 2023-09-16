@@ -1,18 +1,14 @@
 import base64
-from django.shortcuts import get_object_or_404
+
+from djoser import serializers as djoser_serializers
 from django.core.files.base import ContentFile
 from rest_framework import serializers
-from djoser.serializers import UserCreateSerializer, UserSerializer
-# from rest_framework.exceptions import ValidationError
-# from rest_framework.relations import SlugRelatedField
-# from rest_framework_simplejwt.tokens import AccessToken
-
 from recipes.models import (Favorite, Ingredient, IngredientRecipe,
                             Recipe, ShoppingList, Tag)
 from users.models import Follow, User
 
 
-class UserReadSerializer(UserSerializer):
+class UserReadSerializer(djoser_serializers.UserSerializer):
     """Сериализатор только для просмотра пользователей."""
     is_subscribed = serializers.SerializerMethodField(read_only=True)
 
@@ -34,7 +30,7 @@ class UserReadSerializer(UserSerializer):
         return Follow.objects.filter(user=user, following=obj).exists()
 
 
-class UserCreateSerializer(UserCreateSerializer):
+class UserCreateSerializer(djoser_serializers.UserCreateSerializer):
     """Сериализатор для регистрации пользователей."""
     username = serializers.RegexField(regex=r'^[\w.@+-]+\Z', max_length=150,
                                       required=True)
@@ -95,7 +91,21 @@ class Base64ImageField(serializers.ImageField):
         return super().to_internal_value(data)
 
 
-class RecipeReadSerializer(serializers.ModelSerializer):
+class RecipeReadMinSerializer(serializers.ModelSerializer):
+    """Сериализатор для просмотра краткой информации о рецептах."""
+    name = serializers.CharField(read_only=True)
+    image = Base64ImageField(read_only=True)
+    cooking_time = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Recipe
+        fields = (
+            'id', 'name', 'image', 'cooking_time'
+        )
+
+
+class RecipeReadMaxSerializer(RecipeReadMinSerializer,
+                              serializers.ModelSerializer):
     """Сериализатор только для просмотра рецептов."""
     is_favorited = serializers.SerializerMethodField(read_only=True)
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
@@ -103,7 +113,6 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     author = UserReadSerializer(read_only=True)
     ingredients = IngredientRecipeSerializer(read_only=True, many=True,
                                              source='ingredient_recipe')
-    image = Base64ImageField(read_only=True)
 
     class Meta:
         model = Recipe
@@ -179,15 +188,15 @@ class RecipeСreateUpdateDeleteSerializer(serializers.ModelSerializer):
         Передача в Response подробных данных созданного или обновлённого
         рецепта через RecipeReadSerializer.
         """
-        return RecipeReadSerializer(instance, context=self.context).data
+        return RecipeReadMaxSerializer(instance, context=self.context).data
 
     def update(self, instance, validated_data):
         """Обновление рецепта."""
         instance.name = validated_data.get('name', instance.name)
         instance.image = validated_data.get('image', instance.image)
         instance.text = validated_data.get('text', instance.text)
-        instance.cooking_time = validated_data.get(
-            'cooking_time', instance.cooking_time)
+        instance.cooking_time = validated_data.get('cooking_time',
+                                                   instance.cooking_time)
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
         instance.tags.set(tags)
@@ -203,14 +212,33 @@ class RecipeСreateUpdateDeleteSerializer(serializers.ModelSerializer):
         return instance
 
 
-class FavoriteRecipeSerializer(serializers.ModelSerializer):
-    """Сериализатор для добавления и удаления рецептов из избранного."""
-    image = Base64ImageField(read_only=True)
-    name = serializers.CharField(read_only=True)
-    cooking_time = serializers.IntegerField(read_only=True)
+class UserSubscriptionsSerializer(UserReadSerializer):
+    """Сериализатор для просмотра, создания, удаления подписок."""
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
 
     class Meta:
-        model = Recipe
+        model = User
         fields = (
-            'id', 'name', 'image', 'cooking_time'
+            'email', 'id', 'username', 'first_name', 'last_name',
+            'is_subscribed', 'recipes', 'recipes_count'
         )
+        read_only_fields = (
+            'email', 'id', 'username', 'first_name', 'last_name',
+            'is_subscribed', 'recipes', 'recipes_count'
+        )
+
+    def get_recipes(self, obj):
+        """Получение рецептов избранного автора."""
+        request = self.context.get('request')
+        recipes_limit = request.query_params.get('recipes_limit')
+        recipes = Recipe.objects.filter(author=obj)
+        if recipes_limit:
+            recipes = recipes[:int(recipes_limit)]
+        serializer = RecipeReadMinSerializer(recipes, read_only=True,
+                                             many=True)
+        return serializer.data
+
+    def get_recipes_count(self, obj):
+        """Подсчёт количества рецептов избранного автора."""
+        return Recipe.objects.filter(author=obj).count()
