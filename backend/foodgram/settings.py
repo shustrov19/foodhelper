@@ -1,12 +1,16 @@
 import os
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-SECRET_KEY = '*+bxw_db1_g$e9@hacsdw2&zc%@$8_l_4-g*yt__#8j1%!9utq'
+SECRET_KEY = os.getenv('SECRET_KEY', 'secret_key')
 
-DEBUG = True
+DEBUG = os.getenv('DEBUG', False)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1 localhost').split()
 
 AUTH_USER_MODEL = 'users.User'
 
@@ -65,6 +69,16 @@ if DEBUG:
             'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         }
     }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('POSTGRES_DB', 'django'),
+        'USER': os.getenv('POSTGRES_USER', 'django'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
+        'HOST': os.getenv('DB_HOST', ''),
+        'PORT': os.getenv('DB_PORT', 5432)
+    }
+}
 
 
 AUTH_PASSWORD_VALIDATORS = [

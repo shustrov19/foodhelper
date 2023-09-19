@@ -1,10 +1,12 @@
 from rest_framework import permissions
 
 
-class IsAuthorAdminOrReadOnly(permissions.BasePermission):
-    """Просмотр разрешён любому пользователю.
-    Создание, удаление, редактирование Разрешено только автору
-    или администратору."""
+class IsAuthorStaffAdminOrReadOnly(permissions.BasePermission):
+    """
+    Просмотр разрешён любому пользователю.
+    Создание, удаление, редактирование разрешено только автору,
+    персоналу сервиса или администратору.
+    """
     def has_permission(self, request, view):
         return (request.method in permissions.SAFE_METHODS
                 or request.user.is_authenticated)

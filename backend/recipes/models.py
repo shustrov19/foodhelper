@@ -28,9 +28,9 @@ class Tag(models.Model):
         (YELLOW, 'Жёлтый'),
     )
     name = models.CharField('Название тега', max_length=200, unique=True)
-    color = models.CharField('Цвет в HEX', max_length=7, blank=True,
-                             choices=TAGS_COLORS, default=GREEN, unique=True)
-    slug = models.SlugField('Slug', max_length=200, blank=True, unique=True)
+    color = models.CharField('Цвет в HEX', max_length=7, choices=TAGS_COLORS,
+                             unique=True)
+    slug = models.SlugField('Slug', max_length=200, unique=True)
 
     def __str__(self):
         return self.name

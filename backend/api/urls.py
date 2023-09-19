@@ -10,16 +10,6 @@ router.register('users', UserViewSet, basename='users')
 router.register('tags', TagViewSet, basename='tags')
 router.register('ingredients', IngredientViewSet, basename='ingredients')
 router.register('recipes', RecipeViewSet, basename='recipes')
-# router_v1.register(
-#     r'titles/(?P<title_id>\d+)/reviews',
-#     ReviewViewSet,
-#     basename='reviews'
-# )
-# router_v1.register(
-#     r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
-#     CommentViewSet,
-#     basename='comments'
-# )
 
 urlpatterns = [
     path('', include(router.urls)),

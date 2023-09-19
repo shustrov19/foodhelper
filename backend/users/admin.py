@@ -8,5 +8,9 @@ class UserAdmin(admin.ModelAdmin):
     list_filter = ('email', 'username')
 
 
+class FollowAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'following')
+
+
 admin.site.register(User, UserAdmin)
-admin.site.register(Follow)
+admin.site.register(Follow, FollowAdmin)

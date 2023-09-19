@@ -1,49 +1,45 @@
-from djoser.serializers import SetPasswordSerializer
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from djoser.serializers import SetPasswordSerializer
 from rest_framework import filters, mixins, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from .filters import RecipeFilter
-from .pagination import FoodgramPagination
-from .permissions import IsAuthorAdminOrReadOnly
-from .serializers import (IngredientSerializer,
-                          RecipeСreateUpdateDeleteSerializer,
-                          RecipeReadMaxSerializer,
-                          RecipeReadMinSerializer,
-                          ShoppingList,
-                          TagSerializer,
-                          UserCreateSerializer,
-                          UserReadSerializer,
-                          UserSubscriptionsSerializer)
-
 from recipes.models import Favorite, Ingredient, IngredientRecipe, Recipe, Tag
 from users.models import Follow, User
+
+from .filters import RecipeFilter
+from .pagination import FoodgramPagination
+from .permissions import IsAuthorStaffAdminOrReadOnly
+from .serializers import (IngredientSerializer, RecipeReadMaxSerializer,
+                          RecipeReadMinSerializer,
+                          RecipeСreateUpdateDeleteSerializer, ShoppingList,
+                          TagSerializer, UserCreateSerializer,
+                          UserReadSerializer, UserSubscriptionsSerializer)
 
 
 class UserViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
                   mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     """Вьюсет для отображения и создания пользователей."""
     queryset = User.objects.all()
+    serializer_class = UserCreateSerializer
     pagination_class = FoodgramPagination
     permission_classes = (permissions.AllowAny,)
 
     def get_serializer_class(self):
-        """Выбор сериализатора в зависимости от вида действия."""
-        if self.action in ('list', 'retrieve'):
+        """Выбор сериализатора в зависимости от вида запроса."""
+        if self.request.method == 'GET':
             return UserReadSerializer
-        return UserCreateSerializer
+        return self.serializer_class
 
     @action(detail=False, methods=['get'],
             permission_classes=(permissions.IsAuthenticated,))
     def me(self, request):
-        """Дополнительный URL 'users/me' для текущего пользователя."""
-        serializer = UserReadSerializer(
-            instance=self.request.user, context={'request': request}
-        )
+        """Дополнительный URL эндпоинт 'users/me' для текущего пользователя."""
+        serializer = UserReadSerializer(instance=self.request.user,
+                                        context={'request': request})
         return Response(serializer.data,
                         status=status.HTTP_200_OK)
 
@@ -59,7 +55,7 @@ class UserViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
         if serializer.is_valid(raise_exception=True):
             self.request.user.set_password(serializer.data["new_password"])
             self.request.user.save()
-        return Response('Пароль успешно изменен.',
+        return Response('Пароль успешно изменён',
                         status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, methods=['get'],
@@ -71,8 +67,9 @@ class UserViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
         подписок пользователя.
         """
         followings = User.objects.filter(following__user=self.request.user)
-        paginated_queryset = self.paginate_queryset(followings)
-        serializer = UserSubscriptionsSerializer(paginated_queryset, many=True,
+        paginated_followings = self.paginate_queryset(followings)
+        serializer = UserSubscriptionsSerializer(paginated_followings,
+                                                 many=True,
                                                  context={'request': request})
         return self.get_paginated_response(serializer.data)
 
@@ -101,7 +98,7 @@ class UserViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
                 author,
                 data=request.data,
                 context={'request': request}
-                )
+            )
             serializer.is_valid(raise_exception=True)
             Follow.objects.create(following=author, user=self.request.user)
             return Response(serializer.data,
@@ -137,23 +134,25 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для рецептов."""
     queryset = Recipe.objects.all()
+    serializer_class = RecipeСreateUpdateDeleteSerializer
     pagination_class = FoodgramPagination
-    permission_classes = (IsAuthorAdminOrReadOnly,)
+    permission_classes = (IsAuthorStaffAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
-        """Выбор сериализатора в зависимости от вида действия."""
-        if self.action in ('list', 'retrieve'):
+        """Выбор сериализатора в зависимости от вида запроса."""
+        if self.request.method == 'GET':
             return RecipeReadMaxSerializer
-        return RecipeСreateUpdateDeleteSerializer
+        return self.serializer_class
 
     @action(detail=True, methods=['post', 'delete'],
             permission_classes=(permissions.IsAuthenticated,))
     def favorite(self, request, *args, **kwargs):
         """
         Дополнительный URL 'recipes/{id}/favorite'
-        для добавления и удаления рецепта из избранного."""
+        для добавления и удаления рецепта из избранного.
+        """
         recipe = get_object_or_404(Recipe, pk=kwargs.get('pk'))
         favorite_recipe = Favorite.objects.filter(user=self.request.user,
                                                   recipe=recipe)
@@ -222,6 +221,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 f'{ingredient["ingredient__measurement_unit"]}\n'
             )
             count += 1
+        shoplist += '\nСпасибо за использование сервиса Foodgram.'
         file = HttpResponse(shoplist, content_type='text/plain')
         file['Content-Disposition'] = 'attachment; filename=shoplist.txt'
         return file
