@@ -1,6 +1,13 @@
 from django_filters import rest_framework as filters
+from rest_framework.filters import SearchFilter
 
 from recipes.models import Recipe, Tag
+
+
+class IngredientSearchFilter(SearchFilter):
+    """Кастомный поисковый фильтр для ингредиентов. Замена параметра
+    search на параметр name."""
+    search_param = 'name'
 
 
 class RecipeFilter(filters.FilterSet):

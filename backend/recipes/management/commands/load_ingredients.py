@@ -6,12 +6,11 @@ from recipes.models import Ingredient
 
 
 class Command(BaseCommand):
-    help = 'Загрузка в базу данных из ingredients.json'
 
     def handle(self, *args, **kwargs):
-        with open('../data/ingredients.json',
+        with open('./recipes/management/commands/ingredients.json',
                   encoding='utf8') as file:
-            self.stdout.write('Загрузка в базу данных...')
+            self.stdout.write('Загрузка ингредиентов в базу данных...')
             Ingredient.objects.bulk_create(
                 [Ingredient(
                     name=data['name'],
@@ -20,6 +19,6 @@ class Command(BaseCommand):
             )
         self.stdout.write(
             self.style.SUCCESS(
-                'Загрузка произошла успешно!'
+                'Загрузка ингредиентов произошла успешно!'
             )
         )

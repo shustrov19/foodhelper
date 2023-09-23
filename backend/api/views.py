@@ -3,16 +3,16 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.serializers import SetPasswordSerializer
-from rest_framework import filters, mixins, permissions, status, viewsets
+from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from recipes.models import Favorite, Ingredient, IngredientRecipe, Recipe, Tag
 from users.models import Follow, User
 
-from .filters import RecipeFilter
+from .filters import IngredientSearchFilter, RecipeFilter
 from .pagination import FoodgramPagination
-from .permissions import IsAuthorStaffAdminOrReadOnly
+from .permissions import IsAuthorAdminOrReadOnly
 from .serializers import (IngredientSerializer, RecipeReadMaxSerializer,
                           RecipeReadMinSerializer,
                           RecipeСreateUpdateDeleteSerializer, ShoppingList,
@@ -75,7 +75,7 @@ class UserViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
 
     @action(detail=True, methods=['post', 'delete'],
             permission_classes=(permissions.IsAuthenticated,))
-    def subscribe(self, request, **kwargs):
+    def subscribe(self, request, *args, **kwargs):
         """
         Дополнительный URL эндпоинт 'users/{id}/subscribe' для оформления
         и удаления подписки на автора.
@@ -127,8 +127,8 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (permissions.AllowAny,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('^name', 'name')
+    filter_backends = (IngredientSearchFilter,)
+    search_fields = ('^name', )
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -136,7 +136,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeСreateUpdateDeleteSerializer
     pagination_class = FoodgramPagination
-    permission_classes = (IsAuthorStaffAdminOrReadOnly,)
+    permission_classes = (IsAuthorAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 

@@ -3,6 +3,9 @@ from django.contrib import admin
 from .models import (Favorite, Ingredient, IngredientRecipe, Recipe,
                      ShoppingList, Tag, TagRecipe)
 
+admin.site.site_title = 'Админ-панель сайта Foodgram'
+admin.site.site_header = 'Админ-панель сайта Foodgram'
+
 
 class FavoriteAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'recipe')

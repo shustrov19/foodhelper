@@ -19,13 +19,13 @@ class Ingredient(models.Model):
 
 class Tag(models.Model):
     """Теги."""
-    RED = '#ff0400'
-    YELLOW = '#fff700'
-    GREEN = '#07a824'
+    RED = '#c76161'
+    GREEN = '#63f059'
+    BLUE = '#3c99f0'
     TAGS_COLORS = (
         (RED, 'Красный'),
         (GREEN, 'Зелёный'),
-        (YELLOW, 'Жёлтый'),
+        (BLUE, 'Синий'),
     )
     name = models.CharField('Название тега', max_length=200, unique=True)
     color = models.CharField('Цвет в HEX', max_length=7, choices=TAGS_COLORS,
@@ -64,6 +64,7 @@ class Recipe(models.Model):
         validators=(MinValueValidator(1, 'Минимальное время приготовления - '
                                          '1 минута'),)
     )
+    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
 
     def __str__(self):
         return self.name
@@ -71,6 +72,7 @@ class Recipe(models.Model):
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
+        ordering = ('-pub_date',)
 
 
 class IngredientRecipe(models.Model):

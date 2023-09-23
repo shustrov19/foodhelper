@@ -2,6 +2,9 @@ from django.contrib import admin
 
 from .models import Follow, User
 
+admin.site.site_title = 'Админ-панель сайта Foodgram'
+admin.site.site_header = 'Админ-панель сайта Foodgram'
+
 
 class UserAdmin(admin.ModelAdmin):
     list_display = ('id', 'username', 'email', 'first_name', 'last_name')

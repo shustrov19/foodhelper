@@ -3,12 +3,10 @@ from django.db import models
 
 
 class User(AbstractUser):
-    email = models.EmailField('Адрес электронной почты',
-                              max_length=254,
-                              unique=True)
+    email = models.EmailField('Адрес электронной почты', max_length=254)
     first_name = models.CharField('Имя', max_length=150)
     last_name = models.CharField('Фамилия', max_length=150)
-    username = models.CharField('Username', max_length=150, unique=True)
+    username = models.CharField(max_length=150, unique=True)
 
     def __str__(self):
         return self.username

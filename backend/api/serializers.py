@@ -48,6 +48,7 @@ class UserCreateSerializer(djoser_serializers.UserCreateSerializer):
         )
 
     def validate(self, data):
+        """Проверка уникальности username"""
         if User.objects.filter(username=data['username']):
             raise serializers.ValidationError(
                 'Пользователь с таким username уже существует'
@@ -177,11 +178,10 @@ class RecipeСreateUpdateDeleteSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
+        """Проверка существования ингредиента."""
         ingredients = data['ingredients']
         for ingredient in ingredients:
-            try:
-                Ingredient.objects.get(pk=ingredient['id'])
-            except Ingredient.DoesNotExist:
+            if not Ingredient.objects.filter(pk=ingredient['id']):
                 raise serializers.ValidationError(
                     f'Ингредиента с id = {ingredient["id"]} не существует!'
                 )
