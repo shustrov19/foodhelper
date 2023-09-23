@@ -132,14 +132,15 @@ class RecipeReadMaxSerializer(RecipeReadMinSerializer,
     def get_is_favorited(self, obj):
         """Проверка, есть ли рецепт в избранном пользователя."""
         user = self.context['request'].user
-        return (user.is_authenticated and
-                Favorite.objects.filter(user=user, recipe=obj).exists())
+        return (user.is_authenticated
+                and Favorite.objects.filter(user=user, recipe=obj).exists())
 
     def get_is_in_shopping_cart(self, obj):
         """Проверка, есть ли рецепт в списке покупок пользователя."""
         user = self.context['request'].user
-        return (user.is_authenticated and
-                ShoppingList.objects.filter(user=user, recipe=obj).exists())
+        return (user.is_authenticated
+                and ShoppingList.objects.filter(user=user,
+                                                recipe=obj).exists())
 
 
 class IngredientRecipeCreateSerializer(serializers.ModelSerializer):

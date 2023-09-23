@@ -14,7 +14,7 @@ class Command(BaseCommand):
                 [Ingredient(
                     name=data['name'],
                     measurement_unit=data['measurement_unit']
-                    ) for data in json.load(file)]
+                ) for data in json.load(file)]
             )
         self.stdout.write(
             self.style.SUCCESS(

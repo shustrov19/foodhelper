@@ -15,7 +15,7 @@ class Command(BaseCommand):
                     name=data['name'],
                     color=data['color'],
                     slug=data['slug']
-                    ) for data in json.load(file)]
+                ) for data in json.load(file)]
             )
         self.stdout.write(
             self.style.SUCCESS(

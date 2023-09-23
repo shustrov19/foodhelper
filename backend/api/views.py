@@ -104,9 +104,9 @@ class UserViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
                             status=status.HTTP_201_CREATED)
         if not following_author:
             return Response(
-                    {'errors': 'На данного автора подписка не оформлена'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+                {'errors': 'На данного автора подписка не оформлена'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         following_author.delete()
         return Response(
             {'detail': 'Отписка от данного автора прошла успешно'},
