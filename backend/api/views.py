@@ -3,11 +3,10 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.serializers import SetPasswordSerializer
+from recipes.models import Favorite, Ingredient, IngredientRecipe, Recipe, Tag
 from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
-from recipes.models import Favorite, Ingredient, IngredientRecipe, Recipe, Tag
 from users.models import Follow, User
 
 from .filters import IngredientSearchFilter, RecipeFilter

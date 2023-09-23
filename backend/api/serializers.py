@@ -2,10 +2,9 @@ import base64
 
 from django.core.files.base import ContentFile
 from djoser import serializers as djoser_serializers
-from rest_framework import serializers
-
 from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
                             ShoppingList, Tag)
+from rest_framework import serializers
 from users.models import Follow, User
 
 
