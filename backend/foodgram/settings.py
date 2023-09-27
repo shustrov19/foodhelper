@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'colorfield',
     'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
@@ -71,16 +72,17 @@ if DEBUG:
             'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         }
     }
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('POSTGRES_DB', 'django'),
-        'USER': os.getenv('POSTGRES_USER', 'django'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
-        'HOST': os.getenv('DB_HOST', ''),
-        'PORT': os.getenv('DB_PORT', 5432)
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('POSTGRES_DB', 'django'),
+            'USER': os.getenv('POSTGRES_USER', 'django'),
+            'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
+            'HOST': os.getenv('DB_HOST', ''),
+            'PORT': os.getenv('DB_PORT', 5432)
+        }
     }
-}
 
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -129,3 +131,5 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 CSRF_TRUSTED_ORIGINS = ['https://food-helper.ddns.net']
+
+REGEX_USERNAME = r'^[\w.@+-]+\Z'

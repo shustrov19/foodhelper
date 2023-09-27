@@ -3,17 +3,18 @@ from django.db import models
 
 
 class User(AbstractUser):
+    """Кастомная модель пользователя."""
     email = models.EmailField('Адрес электронной почты', max_length=254)
     first_name = models.CharField('Имя', max_length=150)
     last_name = models.CharField('Фамилия', max_length=150)
-    username = models.CharField(max_length=150, unique=True)
+    username = models.CharField('Username', max_length=150, unique=True)
+
+    class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
 
     def __str__(self):
         return self.username
-
-    class Meta:
-        verbose_name = "Пользователь"
-        verbose_name_plural = "Пользователи"
 
 
 class Follow(models.Model):
@@ -31,9 +32,6 @@ class Follow(models.Model):
         related_name='following'
     )
 
-    def __str__(self):
-        return f'{self.user} подписан на {self.following}'
-
     class Meta:
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
@@ -47,3 +45,6 @@ class Follow(models.Model):
                 name='Запрет подписки на самого себя'
             )
         )
+
+    def __str__(self):
+        return f'{self.user} подписан на {self.following}'

@@ -1,27 +1,34 @@
 from django.contrib import admin
 
-from .models import (Favorite, Ingredient, IngredientRecipe, Recipe,
-                     ShoppingList, Tag, TagRecipe)
+from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
+                            ShoppingList, Tag, TagRecipe)
 
 admin.site.site_title = 'Админ-панель сайта Foodgram'
 admin.site.site_header = 'Админ-панель сайта Foodgram'
 
 
+@admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):
+    """Отображение избранных рецептов."""
     list_display = ('id', 'user', 'recipe')
 
 
+@admin.register(ShoppingList)
 class ShoppingListAdmin(admin.ModelAdmin):
+    """Отображение списка покупок."""
     list_display = ('id', 'user', 'recipe')
 
 
+@admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
     """Отображение ингредиентов."""
     list_display = ('id', 'name', 'measurement_unit')
     list_filter = ('name',)
 
 
+@admin.register(IngredientRecipe)
 class IngredientRecipeAdmin(admin.ModelAdmin):
+    """Отображение модели связи ингредиентов и рецептов."""
     list_display = ('id', 'ingredient', 'recipe', 'amount')
 
 
@@ -39,6 +46,7 @@ class TagsInline(admin.TabularInline):
     model = TagRecipe
 
 
+@admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     """Отображение рецептов."""
     list_display = ('id', 'name', 'author', 'in_favorite_count')
@@ -52,20 +60,14 @@ class RecipeAdmin(admin.ModelAdmin):
     in_favorite_count.short_description = 'Количество добавлений избранное'
 
 
+@admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    """Отображение тегов"""
-    list_display = ('id', 'name', 'slug')
+    """Отображение тегов."""
+    list_display = ('id', 'name', 'color', 'slug')
     prepopulated_fields = {'slug': ('name',)}
 
 
+@admin.register(TagRecipe)
 class TagRecipeAdmin(admin.ModelAdmin):
+    """Отображение модели связи тегов и рецептов."""
     list_display = ('id', 'tag', 'recipe')
-
-
-admin.site.register(Favorite, FavoriteAdmin)
-admin.site.register(Ingredient, IngredientAdmin)
-admin.site.register(IngredientRecipe, IngredientRecipeAdmin)
-admin.site.register(Tag, TagAdmin)
-admin.site.register(TagRecipe, TagRecipeAdmin)
-admin.site.register(Recipe, RecipeAdmin)
-admin.site.register(ShoppingList, ShoppingListAdmin)

@@ -1,5 +1,7 @@
-from django.core.validators import MinValueValidator
+from colorfield.fields import ColorField
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+
 from users.models import User
 
 
@@ -8,35 +10,32 @@ class Ingredient(models.Model):
     name = models.CharField('Название ингредиента', max_length=200)
     measurement_unit = models.CharField('Единица измерения', max_length=200)
 
-    def __str__(self):
-        return f'{self.name}, {self.measurement_unit}'
-
     class Meta:
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
 
+    def __str__(self):
+        return f'{self.name}, {self.measurement_unit}'
+
 
 class Tag(models.Model):
     """Теги."""
-    RED = '#c76161'
-    GREEN = '#63f059'
-    BLUE = '#3c99f0'
-    TAGS_COLORS = (
-        (RED, 'Красный'),
-        (GREEN, 'Зелёный'),
-        (BLUE, 'Синий'),
+    COLOR_PALETTE = (
+        ('#C76161', 'Красный'),
+        ('#63F059', 'Зелёный'),
+        ('#3C99F0', 'Синий'),
     )
     name = models.CharField('Название тега', max_length=200, unique=True)
-    color = models.CharField('Цвет в HEX', max_length=7, choices=TAGS_COLORS,
-                             unique=True)
+    color = ColorField('Цвет в HEX', max_length=7, unique=True,
+                       samples=COLOR_PALETTE)
     slug = models.SlugField('Slug', max_length=200, unique=True)
-
-    def __str__(self):
-        return self.name
 
     class Meta:
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
+
+    def __str__(self):
+        return self.name
 
 
 class Recipe(models.Model):
@@ -60,18 +59,22 @@ class Recipe(models.Model):
     text = models.TextField('Описание блюда')
     cooking_time = models.PositiveSmallIntegerField(
         'Время приготовления в минутах',
-        validators=(MinValueValidator(1, 'Минимальное время приготовления - '
-                                         '1 минута'),)
+        validators=(
+            MinValueValidator(1, 'Минимальное время приготовления - '
+                              '1 минута'),
+            MaxValueValidator(1440, 'Максимальное время приготовления - '
+                              '1440 минут(1 день)')
+        )
     )
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
-
-    def __str__(self):
-        return self.name
 
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
         ordering = ('-pub_date',)
+
+    def __str__(self):
+        return self.name
 
 
 class IngredientRecipe(models.Model):
@@ -84,11 +87,13 @@ class IngredientRecipe(models.Model):
                                on_delete=models.CASCADE,
                                related_name='ingredient_recipe',
                                verbose_name='Рецепт')
-    amount = models.PositiveSmallIntegerField('Количество ингредиента')
-
-    def __str__(self):
-        return (f'{self.ingredient.name} в количестве {self.amount} '
-                f'{self.ingredient.measurement_unit}  для {self.recipe.name}')
+    amount = models.PositiveSmallIntegerField(
+        'Количество ингредиента',
+        validators=(MinValueValidator(1, 'Ингредиент должен быть в количестве '
+                                      '1 и больше'),
+                    MaxValueValidator(32000, 'Ингредиент должен быть в '
+                                      'количестве не более 32000'))
+    )
 
     class Meta:
         verbose_name = 'Игредиент для рецепта'
@@ -99,6 +104,10 @@ class IngredientRecipe(models.Model):
                 name='Уникальный ингредиент для рецепта',
             ),
         )
+
+    def __str__(self):
+        return (f'{self.ingredient.name} в количестве {self.amount} '
+                f'{self.ingredient.measurement_unit}  для {self.recipe.name}')
 
 
 class TagRecipe(models.Model):
@@ -112,9 +121,6 @@ class TagRecipe(models.Model):
                                verbose_name='Рецепт',
                                related_name='tag_recipe')
 
-    def __str__(self):
-        return f'Тег - {self.tag} для {self.recipe}'
-
     class Meta:
         verbose_name = 'Тег для рецепта'
         verbose_name_plural = 'Теги для рецептов'
@@ -124,6 +130,9 @@ class TagRecipe(models.Model):
                 name='Уникальный тег для рецепта',
             ),
         )
+
+    def __str__(self):
+        return f'Тег - {self.tag} для {self.recipe}'
 
 
 class ShoppingList(models.Model):
@@ -137,9 +146,6 @@ class ShoppingList(models.Model):
                              related_name='shoplist',
                              verbose_name='Пользователь, собравший список')
 
-    def __str__(self):
-        return f'У {self.user} в списке покупок {self.recipe}'
-
     class Meta:
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Списки покупок'
@@ -149,6 +155,9 @@ class ShoppingList(models.Model):
                 name='Уникальный рецепт в списке покупок',
             ),
         )
+
+    def __str__(self):
+        return f'У {self.user} в списке покупок {self.recipe}'
 
 
 class Favorite(models.Model):
@@ -162,9 +171,6 @@ class Favorite(models.Model):
                                on_delete=models.CASCADE,
                                related_name='favorite')
 
-    def __str__(self):
-        return f'У {self.user} в избранном {self.recipe}'
-
     class Meta:
         verbose_name = 'Избранный рецепт'
         verbose_name_plural = 'Избранные рецепты'
@@ -174,3 +180,6 @@ class Favorite(models.Model):
                 name='Уникальный избранный рецепт',
             ),
         )
+
+    def __str__(self):
+        return f'У {self.user} в избранном {self.recipe}'

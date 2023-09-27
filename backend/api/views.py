@@ -1,13 +1,9 @@
-from django.db.models import Sum
-from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.serializers import SetPasswordSerializer
-from recipes.models import Favorite, Ingredient, IngredientRecipe, Recipe, Tag
 from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from users.models import Follow, User
 
 from .filters import IngredientSearchFilter, RecipeFilter
 from .pagination import FoodgramPagination
@@ -17,6 +13,9 @@ from .serializers import (IngredientSerializer, RecipeReadMaxSerializer,
                           RecipeСreateUpdateDeleteSerializer, ShoppingList,
                           TagSerializer, UserCreateSerializer,
                           UserReadSerializer, UserSubscriptionsSerializer)
+from .utils import download_shop_cart
+from recipes.models import Favorite, Ingredient, Recipe, Tag
+from users.models import Follow, User
 
 
 class UserViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
@@ -52,7 +51,7 @@ class UserViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
         serializer = SetPasswordSerializer(data=request.data,
                                            context={'request': request})
         if serializer.is_valid(raise_exception=True):
-            self.request.user.set_password(serializer.data["new_password"])
+            self.request.user.set_password(serializer.data['new_password'])
             self.request.user.save()
         return Response('Пароль успешно изменён',
                         status=status.HTTP_204_NO_CONTENT)
@@ -110,7 +109,7 @@ class UserViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
         following_author.delete()
         return Response(
             {'detail': 'Отписка от данного автора прошла успешно'},
-            status=status.HTTP_400_BAD_REQUEST
+            status=status.HTTP_204_NO_CONTENT
         )
 
 
@@ -204,23 +203,5 @@ class RecipeViewSet(viewsets.ModelViewSet):
         Дополнительный URL эндпоинт 'recipes/download_shopping_cart'
         для скачивания списка ингредиентов из списка покупок.
         """
-        shop_ingredients = (
-            IngredientRecipe.objects
-            .filter(recipe__shoplist__user=self.request.user)
-            .values('ingredient__name', 'ingredient__measurement_unit')
-            .annotate(sum_amount=Sum('amount'))
-            .order_by('-sum_amount')
-        )
-        shoplist = 'Список покупок:\n\n'
-        count = 1
-        for ingredient in shop_ingredients:
-            shoplist += (
-                f'{count}. {ingredient["ingredient__name"]} - '
-                f'{ingredient["sum_amount"]} '
-                f'{ingredient["ingredient__measurement_unit"]}\n'
-            )
-            count += 1
-        shoplist += '\nСпасибо за использование сервиса Foodgram.'
-        file = HttpResponse(shoplist, content_type='text/plain')
-        file['Content-Disposition'] = 'attachment; filename=shoplist.txt'
-        return file
+        user = get_object_or_404(User, pk=self.request.user.pk)
+        return download_shop_cart(user)

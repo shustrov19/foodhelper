@@ -132,4 +132,6 @@ dmypy.json
 .idea
 
 /backend/media/
-.vscode/
+.vscode
+static/
+db.sqlite3

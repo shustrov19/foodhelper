@@ -1,10 +1,13 @@
 import base64
 
+from django.conf import settings
 from django.core.files.base import ContentFile
+from django.db import transaction
 from djoser import serializers as djoser_serializers
+from rest_framework import serializers
+
 from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
                             ShoppingList, Tag)
-from rest_framework import serializers
 from users.models import Follow, User
 
 
@@ -32,8 +35,8 @@ class UserReadSerializer(djoser_serializers.UserSerializer):
 
 class UserCreateSerializer(djoser_serializers.UserCreateSerializer):
     """Сериализатор для регистрации пользователей."""
-    username = serializers.RegexField(regex=r'^[\w.@+-]+\Z', max_length=150,
-                                      required=True)
+    username = serializers.RegexField(regex=settings.REGEX_USERNAME,
+                                      max_length=150, required=True)
     email = serializers.EmailField(max_length=254, required=True)
     first_name = serializers.CharField(max_length=150, required=True)
     last_name = serializers.CharField(max_length=150, required=True)
@@ -187,6 +190,7 @@ class RecipeСreateUpdateDeleteSerializer(serializers.ModelSerializer):
                 )
         return data
 
+    @transaction.atomic
     def create(self, validated_data):
         """Создание рецепта."""
         tags = validated_data.pop('tags')
@@ -203,6 +207,7 @@ class RecipeСreateUpdateDeleteSerializer(serializers.ModelSerializer):
             )
         return recipe
 
+    @transaction.atomic
     def update(self, instance, validated_data):
         """Обновление рецепта."""
         instance.name = validated_data.get('name', instance.name)

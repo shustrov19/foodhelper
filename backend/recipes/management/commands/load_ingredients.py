@@ -1,10 +1,13 @@
 import json
 
 from django.core.management.base import BaseCommand
+
 from recipes.models import Ingredient
 
 
 class Command(BaseCommand):
+
+    help = 'Импорт ингредиентов из ingredients.json'
 
     def handle(self, *args, **kwargs):
         with open('./recipes/management/commands/ingredients.json',
