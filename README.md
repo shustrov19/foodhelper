@@ -92,11 +92,13 @@ sudo apt install docker-compose
 image: <username>/foodgram_backend
 ```
 где username - ваш логин на Docker Hub 
+
 5. Замените в файле docker-compose.production.yml в пункте frontend:
 ```
 image: <username>/foodgram_frontend
 ```
 где username - ваш логин на Docker Hub
+
 6. Скопируйте файлы docker-compose.production.yml, nginx.conf и .env в директорию foodgram на сервер. Для этого зайдите на своём компьютере в директорию foodgram-project-react/infra и выполните в Git Bash команду копирования:
 ```
 scp -i <path_to_SSH>/<SSH_name> docker-compose.production.yml \
