@@ -49,13 +49,13 @@ class UserCreateSerializer(djoser_serializers.UserCreateSerializer):
             'email', 'id', 'username', 'first_name', 'last_name', 'password'
         )
 
-    def validate(self, data):
-        """Проверка уникальности username"""
-        if User.objects.filter(username=data['username']):
+    def validate_username(self, value):
+        """Проверка уникальности username."""
+        if User.objects.filter(username=value):
             raise serializers.ValidationError(
                 'Пользователь с таким username уже существует'
             )
-        return data
+        return value
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -171,7 +171,7 @@ class RecipeСreateUpdateDeleteSerializer(serializers.ModelSerializer):
     image = Base64ImageField(required=True)
     name = serializers.CharField(required=True, max_length=200)
     text = serializers.CharField(required=True)
-    cooking_time = serializers.IntegerField(required=True, min_value=1)
+    cooking_time = serializers.IntegerField(required=True)
 
     class Meta:
         model = Recipe
@@ -181,13 +181,63 @@ class RecipeСreateUpdateDeleteSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        """Проверка существования ингредиента."""
-        ingredients = data['ingredients']
-        for ingredient in ingredients:
-            if not Ingredient.objects.filter(pk=ingredient['id']):
+        """Валидация ингредиентов, тегов и времени приготовления."""
+        ingredients = data.get('ingredients')
+        if not ingredients:
+            raise serializers.ValidationError(
+                'Нужно добавить хотя бы 1 ингредиент!'
+            )
+        valid_ingredients = []
+        for item in ingredients:
+            if not Ingredient.objects.filter(pk=item['id']):
                 raise serializers.ValidationError(
-                    f'Ингредиента с id = {ingredient["id"]} не существует!'
+                    f'Ингредиента с id = {item["id"]} не существует!'
                 )
+            ingredient = Ingredient.objects.get(pk=item['id'])
+            if ingredient in valid_ingredients:
+                raise serializers.ValidationError(
+                    f'Ингредиент {ingredient.name} с id = {ingredient.pk} уже '
+                    'добавлен. Ингредиенты не должны повторяться!'
+                )
+            if item['amount'] < 1:
+                raise serializers.ValidationError(
+                    f'У ингредиента {ingredient.name} с id = {ingredient.pk} '
+                    f'количество меньше 1 {ingredient.measurement_unit}. '
+                    f'Добавьте количество не меньше 1 '
+                    f'{ingredient.measurement_unit}!'
+                )
+            if item['amount'] > 32000:
+                raise serializers.ValidationError(
+                    f'У ингредиента {ingredient.name} с id = {ingredient.pk} '
+                    f'количество больше 32000 {ingredient.measurement_unit}. '
+                    'Добавьте количество не больше 32000 '
+                    f'{ingredient.measurement_unit}!'
+                )
+            valid_ingredients.append(ingredient)
+
+        tags = data.get('tags')
+        if not tags:
+            raise serializers.ValidationError('Нужно добавить хотя бы 1 тег!')
+        valid_tags = []
+        for tag in tags:
+            if tag in valid_tags:
+                raise serializers.ValidationError(
+                    f'Тег {tag.name} с id = {tag.pk} уже '
+                    'добавлен. Теги не должны повторяться!'
+                )
+            valid_tags.append(tag)
+
+        cooking_time = data.get('cooking_time')
+        if cooking_time < 1:
+            raise serializers.ValidationError(
+                'Время приготовления меньше 1 минуты. '
+                'Добавьте время не меньше 1 минуты!'
+            )
+        if cooking_time > 1440:
+            raise serializers.ValidationError(
+                'Время приготовления больше 1 дня(1440 минут). '
+                'Добавьте время не больше 1440 минут!'
+            )
         return data
 
     @transaction.atomic
