@@ -15,7 +15,7 @@ services:
       - .env
 
   backend:
-    image: shustrov19/foodgram_backend
+    image: shustrov19/foodhelper_backend
     env_file:
       - .env
     volumes:
@@ -27,7 +27,7 @@ services:
 
   
   frontend:
-    image: shustrov19/foodgram_frontend
+    image: shustrov19/foodhelper_frontend
     volumes:
       - ../frontend/:/app/result_build/
   

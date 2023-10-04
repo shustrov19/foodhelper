@@ -180,15 +180,14 @@ class RecipeСreateUpdateDeleteSerializer(serializers.ModelSerializer):
             'cooking_time'
         )
 
-    def validate(self, data):
-        """Валидация ингредиентов, тегов и времени приготовления."""
-        ingredients = data.get('ingredients')
-        if not ingredients:
+    def validate_ingredients(self, value):
+        """Валидация ингредиентов."""
+        if not value:
             raise serializers.ValidationError(
                 'Нужно добавить хотя бы 1 ингредиент!'
             )
         valid_ingredients = []
-        for item in ingredients:
+        for item in value:
             if not Ingredient.objects.filter(pk=item['id']):
                 raise serializers.ValidationError(
                     f'Ингредиента с id = {item["id"]} не существует!'
@@ -214,31 +213,35 @@ class RecipeСreateUpdateDeleteSerializer(serializers.ModelSerializer):
                     f'{ingredient.measurement_unit}!'
                 )
             valid_ingredients.append(ingredient)
+        return value
 
-        tags = data.get('tags')
-        if not tags:
+    def validate_tags(self, value):
+        """Валидация тегов."""
+        if not value:
             raise serializers.ValidationError('Нужно добавить хотя бы 1 тег!')
         valid_tags = []
-        for tag in tags:
+        for tag in value:
             if tag in valid_tags:
                 raise serializers.ValidationError(
                     f'Тег {tag.name} с id = {tag.pk} уже '
                     'добавлен. Теги не должны повторяться!'
                 )
             valid_tags.append(tag)
+        return value
 
-        cooking_time = data.get('cooking_time')
-        if cooking_time < 1:
+    def validate_cooking_time(self, value):
+        """Валидация времени приготовления."""
+        if value < 1:
             raise serializers.ValidationError(
                 'Время приготовления меньше 1 минуты. '
                 'Добавьте время не меньше 1 минуты!'
             )
-        if cooking_time > 1440:
+        if value > 1440:
             raise serializers.ValidationError(
                 'Время приготовления больше 1 дня(1440 минут). '
                 'Добавьте время не больше 1440 минут!'
             )
-        return data
+        return value
 
     @transaction.atomic
     def create(self, validated_data):

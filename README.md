@@ -1,14 +1,11 @@
-# Foodgram
+# FoodHelper
 ## Описание 
-Проект Foodgram c backend на Django, c контейниразацией Docker и CI/CD. Благодаря этому проекту, можно на сайт [Foodgram](https://food-helper.ddns.net/) создавать разные рецепты, подписываться на авторов, добавлять рецепты в избранное и корзину, скачивать список ингредиентов необходимых для приготовления блюд.
+Проект продуктового помощника c backend на Django, c контейниразацией Docker и CI/CD. Благодаря этому проекту, можно на сайте [FoodHelper](https://food-helper.ddns.net/) создавать разные рецепты, подписываться на авторов, добавлять рецепты в избранное и корзину, скачивать список ингредиентов необходимых для приготовления блюд в формате PDF. В админ зоне Django добавление цвета в формате HEX к тегам осуществлено с помощью панели Color Picker.
 
-**Проект Foodgram [https://food-helper.ddns.net/](https://food-helper.ddns.net/)**
+**Проект FoodHelper [https://food-helper.ddns.net/](https://food-helper.ddns.net/)**
 
 **API-документация [https://food-helper.ddns.net/api/docs/](https://food-helper.ddns.net/api/docs/)**
 
-**Админка [https://food-helper.ddns.net/admin/](https://food-helper.ddns.net/admin/)** 
-* username: admin 
-* пароль: admin
 
 ## Технологии 
 - Python 3.10
@@ -21,12 +18,14 @@
 - Docker
 - PosgreSQL 13.10
 - GitHub Actions
+- ReportLab 4
+- Сolor Picker
 
 ## Инструкция по запуску на локальном сервере
 
 1. Клонирование проекта с GitHub на локальный компьютер
 ```
-git clone git@github.com:shustrov19/foodgram-project-react.git
+git clone git@github.com:shustrov19/foodhelper
 ```
 2. В директории проекта перейдите в директорию infra/.
 3. Создайте файл .env в директории infra/ и заполните его. Переменные для работы проекта перечислены в файле .env.example, находящемся в директории infra/.
@@ -57,26 +56,26 @@ https://localhost:8080
 ```
 ## Инструкция по запуску на удалённом сервере
 ### Создание Docker-образов и загрузка на Docker Hub
-1. В терминале в корне проекта foodgram-project-react последовательно выполните следующие команды; замените username на ваш логин на Docker Hub.
+1. В терминале в корне проекта foodhelper последовательно выполните следующие команды; замените username на ваш логин на Docker Hub.
 ```
 cd frontend
-docker build -t username/foodgram_frontend .
+docker build -t username/foodhelper_frontend .
 cd ../backend  
-docker build -t username/foodgram_backend .
+docker build -t username/foodhelper_backend .
 ```
 2. Загрузите образы на Docker Hub
 ```
-docker push username/foodgram_frontend
-docker push username/foodgram_backend
+docker push username/foodhelper_frontend
+docker push username/foodhelper_backend
 ```
 ### Деплой на сервер
 1. В терминале Git Bash введите:
 ```
 ssh -i путь_до_SSH_ключа/название_файла_с_SSH_ключом_без_расширения login@ip
 ```
-2. Создайте директорию foodgram
+2. Создайте директорию foodhelper
 ```
-mkdir foodgram
+mkdir foodhelper
 ```
 3. Установите Docker Compose на сервер:
 ```
@@ -89,28 +88,28 @@ sudo apt install docker-compose
 ```
 4. Замените в файле docker-compose.production.yml в пункте backend:
 ```
-image: <username>/foodgram_backend
+image: <username>/foodhelper_backend
 ```
 где username - ваш логин на Docker Hub 
 
 5. Замените в файле docker-compose.production.yml в пункте frontend:
 ```
-image: <username>/foodgram_frontend
+image: <username>/foodhelper_frontend
 ```
 где username - ваш логин на Docker Hub
 
-6. Скопируйте файлы docker-compose.production.yml, nginx.conf и .env в директорию foodgram на сервер. Для этого зайдите на своём компьютере в директорию foodgram-project-react/infra и выполните в Git Bash команду копирования:
+6. Скопируйте файлы docker-compose.production.yml, nginx.conf и .env в директорию foodhelper на сервер. Для этого зайдите на своём компьютере в директорию foodhelper/infra и выполните в Git Bash команду копирования:
 ```
 scp -i <path_to_SSH>/<SSH_name> docker-compose.production.yml \
-    <username>@<server_ip>:/home/<username>/foodgram/docker-compose.production.yml 
+    <username>@<server_ip>:/home/<username>/foodhelper/docker-compose.production.yml 
 ```
 ```
 scp -i <path_to_SSH>/<SSH_name> nginx.conf \
-    <username>@<server_ip>:/home/<username>/foodgram/nginx.conf 
+    <username>@<server_ip>:/home/<username>/foodhelper/nginx.conf 
 ```
 ```
 scp -i <path_to_SSH>/<SSH_name> .env \
-    <username>@<server_ip>:/home/<username>/foodgram/.env 
+    <username>@<server_ip>:/home/<username>/foodhelper/.env 
 ```
 где:
 * path_to_SSH — путь к файлу с SSH-ключом;
@@ -121,7 +120,7 @@ scp -i <path_to_SSH>/<SSH_name> .env \
 ```
 sudo docker compose -f docker-compose.production.yml up -d
 ```
-8. Выполните миграции из директории foodgram
+8. Выполните миграции из директории foodhelper
 ```
 sudo docker compose -f docker-compose.production.yml exec backend python manage.py migrate
 ```
@@ -152,7 +151,7 @@ sudo service nginx reload
 ### Автоматизация деплоя CI/CD
 В папке проекта на локальном компьютере есть файл workflow main.yml
 ```
-foodgram-project-react/.github/workflows/main.yml
+foodhelper/.github/workflows/main.yml
 ```
 При каждом изменении проекта и его загрузке на GitHub, на сервере будет автоматически обноваляться код, перед этим проходя проверку тестами. При положительном результате вам придёт сообщение в телеграм о том, что деплой прошел успешно.
 Для использования данного файла необходимо на сайте [GitHub](https://github.com/) перейти в **Settings** проекта -> **Secrets and variables** -> **Actions** и поменять следующие значения на свои
